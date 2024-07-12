@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
+    <title>Selamat datang SIPENTO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.2/font/bootstrap-icons.min.css">
 
     <!-- Bootstrap -->
@@ -17,6 +17,7 @@
       <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
     <![endif]-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -67,8 +68,7 @@
     Pendapatan Bulan ini
   </div>
   <div class="card-body">
-    <h5 class="card-title">Special title treatment</h5>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+  <canvas id="julyPurchasesChart" width="400" height="200"></canvas>
   </div>
 </div>
 <br>
@@ -77,8 +77,31 @@
     Daftar Bond
   </div>
   <div class="card-body">
-    <h5 class="card-title">Special title treatment</h5>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+  <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">No </th>
+            <th scope="col">Nama Pembeli </th>
+            <th scope="col">Nama Barang </th>
+            <th scope="col">Jumlah barang </th>
+            <th scope="col">Bond </th>
+            <th scope="col">Status </th>
+            
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($bond as $no => $u)
+          <tr>
+            <th scope="row">{{ $bond->firstitem() + $no }}</th>
+            <td>{{ $u->namapembeli }}</td>
+            <td>{{ $u->namabarang }}</td>
+            <td>{{ $u->jumlahbarang }}</td>
+            <td>{{ $u->bond }}</td>
+            <td>{{ $u->status }}</td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
   </div>
 </div>
 <br>
@@ -87,12 +110,62 @@
     Daftar Barang Habis
   </div>
   <div class="card-body">
-    <h5 class="card-title">Special title treatment</h5>
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+  <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">No </th>
+            <th scope="col">Nama Barang </th>
+            <th scope="col">Stok </th>
+            <th scope="col">Harga </th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($barang as $no => $u)
+          <tr>
+            <th scope="row">{{ $barang->firstitem() + $no }}</th>
+            <td>{{ $u->namabarang }}</td>
+            <td>{{ $u->stok }}</td>
+            <td>{{ $u->harga }}</td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
   </div>
 </div>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch("{{ route('july.purchases') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.date);
+                    const totals = data.map(item => item.total);
+
+                    const ctx = document.getElementById('julyPurchasesChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Pendapatan bulan Juli',
+                                data: totals,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
 </body>
 
 </html>

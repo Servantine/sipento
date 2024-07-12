@@ -15,4 +15,5 @@ class Pembelian extends Model
         'total',
         'tanggal',
     ];
+    protected $table = 'pembelians';    
 }

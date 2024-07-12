@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Barang;
 use App\Models\Pembeli;
 use App\Models\Bond;
@@ -10,6 +11,22 @@ use App\Models\Pembelian;
 
 class PageController extends Controller
 {
+    public function dashboard()
+    {
+        $bond = Bond::where('status', 'belum dibayar')->paginate(10);
+        $barang = Barang::where('stok', 0)->paginate(10);
+        return view('/dashboard', ['key' => 'bond', 'bond' => $bond, 'barang' => $barang]);
+    }
+    
+    public function getJulyPurchases()
+{
+    $julyPurchases = Pembelian::select(DB::raw('DATE(tanggal) as date'), DB::raw('SUM(total) as total'))
+    ->whereMonth('tanggal', 7)
+    ->groupBy(DB::raw('DATE(tanggal)'))
+    ->get();
+
+    return response()->json($julyPurchases);
+}
     public function daftarbarang()
     {
         $barang = Barang::paginate(10);
@@ -49,7 +66,19 @@ class PageController extends Controller
     public function simpanpembelian(Request $request)
     {
         $input = $request->all();
-        Pembelian::create($input);
+        
+        $barang = Barang::where('namabarang', $request->namabarang)->first();
+        if($barang->stok >= $request->jumlahbarang){
+            Pembelian::create($input);
+            if ($barang) {
+                $barang->stok = $barang->stok - $request->jumlahbarang; 
+                $barang->save();
+            }
+        }
+        else{
+            return redirect('/pembelian')->with('error', 'Stok barang kurang');
+        }
+        
         $pembelian = Pembelian::paginate(10);
         return redirect('/pembelian')->with('success', 'Data Pembelian berhasil disimpan.');
     }
@@ -78,7 +107,24 @@ class PageController extends Controller
     public function simpanbond(Request $request)
     {
         $input = $request->all();
-        Bond::create($input);
+        
+        $barang = Barang::where('namabarang', $request->namabarang)->first();
+        if($barang->stok >= $request->jumlahbarang){
+            $input = $request->all();
+            $bond = Bond::create($input);
+            if ($barang) {
+                $barang->stok = $barang->stok - $request->jumlahbarang; 
+                $barang->save();
+            }
+        }
+        else {
+            return redirect('/bond')->with('error', 'Stok Barang Tidak Cukup');
+        }
+        $pembeli = Pembeli::where('namapembeli', $request->namapembeli)->first();
+        if ($pembeli) {
+            $pembeli->bond = $pembeli->bond + $bond->bond; 
+            $pembeli->save();
+        }
         $bond = Bond::paginate(10);
         return redirect('/bond')->with('success', 'Data Bond berhasil disimpan.');
     }
@@ -150,6 +196,12 @@ class PageController extends Controller
         $bond = Bond::findorFail($id);
         $bond->status = "DIBAYAR";
         $bond->save();
+
+        $pembeli = Pembeli::where('namapembeli', $bond->namapembeli)->first();
+        if ($pembeli) {
+            $pembeli->bond = $pembeli->bond - $bond->bond; 
+            $pembeli->save();
+        }
 
         return redirect('/bond')->with('success', 'Berhasil dibayarkan');
     }
