@@ -10,6 +10,7 @@ class Pembelian extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id',
         'namabarang',
         'jumlahbarang',
         'total',

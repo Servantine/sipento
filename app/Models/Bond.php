@@ -10,6 +10,7 @@ class Bond extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id',
         'namapembeli',
         'namabarang',
         'jumlahbarang',

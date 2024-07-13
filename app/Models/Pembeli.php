@@ -10,6 +10,7 @@ class Pembeli extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id',
         'namapembeli',
         'nohp',
         'bond',
